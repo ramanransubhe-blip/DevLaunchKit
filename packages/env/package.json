@@ -10,7 +10,7 @@
     "clean": "tsx ../../scripts/clean.ts"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.4.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {
