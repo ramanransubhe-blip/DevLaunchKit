@@ -40,7 +40,8 @@ test("S3 Storage adapter mock flow", async () => {
   assert.equal(service.providerName, "aws-s3");
 
   const up = await service.upload("buckets", "doc.pdf", "pdf-data");
-  assert.ok(up.url.includes("amazonaws.com"));
+  const upUrl = new URL(up.url);
+  assert.ok(upUrl.hostname.endsWith(".amazonaws.com") || upUrl.hostname === "amazonaws.com");
 });
 
 test("Global registrar check", async () => {

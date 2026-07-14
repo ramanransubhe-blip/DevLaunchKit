@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { createPaymentClient } from "@devlaunchkit/payments";
+import { createDodoBillingService } from "@devlaunchkit/payments";
 import { db } from "@devlaunchkit/database";
 import { createLogger } from "@devlaunchkit/logger";
 import { isFeatureEnabled } from "@devlaunchkit/feature-flags";
@@ -7,7 +7,10 @@ import { z } from "zod";
 
 const router = Router();
 const logger = createLogger({ service: "subscriptions" });
-const payments = createPaymentClient({ provider: "dodo" });
+const payments = createDodoBillingService({
+  apiKey: process.env.DODO_API_KEY,
+  isMock: !process.env.DODO_API_KEY || process.env.NODE_ENV === "development",
+});
 
 /* ------------------------------------------------------------------ */
 /*  Validation schemas                                                 */
@@ -63,14 +66,7 @@ router.post("/", async (req: Request, res: Response) => {
 
     const price = body.interval === "yearly" ? plan.yearly_price : plan.monthly_price;
 
-    const paymentSubscription = await payments.subscriptions.create({
-      customerId: userId,
-      priceAmount: price,
-      currency: "USD",
-      interval: body.interval,
-      metadata: { planId: body.planId, userId },
-      couponCode: body.couponCode,
-    });
+    const paymentSubscription = await payments.createSubscription(userId, body.planId);
 
     const [subscription] = await db("subscriptions")
       .insert({
@@ -139,12 +135,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
       return;
     }
 
-    await payments.subscriptions.update(subscription.external_id, {
-      priceAmount: body.planId
-        ? (await db("plans").where({ id: body.planId }).first())?.monthly_price
-        : undefined,
-      interval: body.interval,
-    });
+    await payments.upgradePlan(subscription.external_id, body.planId ?? subscription.price_id);
 
     const [updated] = await db("subscriptions")
       .where({ id: req.params.id })
@@ -176,9 +167,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
       return;
     }
 
-    await payments.subscriptions.cancel(subscription.external_id, {
-      cancelAtPeriodEnd: true,
-    });
+    await payments.cancelSubscription(subscription.external_id);
 
     const [cancelled] = await db("subscriptions")
       .where({ id: req.params.id })

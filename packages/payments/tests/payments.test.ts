@@ -26,7 +26,8 @@ test("Dodo Payments service adapter mock flow", async () => {
 
   const checkout = await service.createCheckout(customer.id, "price_premium", "https://success.com", "https://cancel.com");
   assert.ok(checkout.id.startsWith("chk_dodo_mock"));
-  assert.ok(checkout.url.includes("checkout.dodopayments.com"));
+  const checkoutUrl = new URL(checkout.url);
+  assert.ok(checkoutUrl.hostname === "checkout.dodopayments.com" || checkoutUrl.hostname.endsWith(".dodopayments.com"));
 
   const sub = await service.createSubscription(customer.id, "price_premium");
   assert.equal(sub.customerId, customer.id);
@@ -43,12 +44,13 @@ test("Stripe service adapter mock flow", async () => {
 
   const checkout = await service.createCheckout(customer.id, "price_premium", "https://success.com", "https://cancel.com");
   assert.ok(checkout.id.startsWith("chk_stripe_mock"));
-  assert.ok(checkout.url.includes("checkout.stripe.com"));
+  const checkoutUrl = new URL(checkout.url);
+  assert.ok(checkoutUrl.hostname === "checkout.stripe.com" || checkoutUrl.hostname.endsWith(".stripe.com"));
 });
 
 test("Webhook validations and exceptions", async () => {
   const service = createDodoBillingService({ isMock: true });
-  const event = await service.validateWebhook('{"type":"payment.succeeded"}', "valid_sig", "secret");
+  const event = await service.validateWebhook('{"type":"subscription.created"}', "valid_sig", "secret");
   assert.equal(event.type, "subscription.created");
 
   await assert.rejects(

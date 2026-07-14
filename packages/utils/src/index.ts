@@ -7,12 +7,19 @@ export function generateId(prefix = ""): string {
 }
 
 export function generateSlug(text: string): string {
-  return text
+  let slug = text
     .toLowerCase()
     .trim()
     .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/[\s_-]+/g, "-");
+
+  while (slug.startsWith("-")) {
+    slug = slug.slice(1);
+  }
+  while (slug.endsWith("-")) {
+    slug = slug.slice(0, -1);
+  }
+  return slug;
 }
 
 // 2. Date Helpers

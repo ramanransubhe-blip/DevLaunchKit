@@ -294,10 +294,11 @@ export class DodoPaymentsService implements BillingService {
       if (signature === "invalid") {
         throw new BillingWebhookError("Invalid mock signature");
       }
+      const parsed = JSON.parse(rawBody);
       return {
-        type: "subscription.created",
-        id: "evt_dodo_mock",
-        data: JSON.parse(rawBody),
+        type: parsed.type || "subscription.created",
+        id: parsed.id || "evt_dodo_mock",
+        data: parsed.data || parsed,
         createdAt: new Date(),
       };
     }

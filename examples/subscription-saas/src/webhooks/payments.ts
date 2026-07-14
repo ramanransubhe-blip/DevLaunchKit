@@ -1,18 +1,36 @@
-import { Router, type Request, type Response } from "express";
-import { createPaymentClient } from "@devlaunchkit/payments";
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { createDodoBillingService } from "@devlaunchkit/payments";
 import { db } from "@devlaunchkit/database";
 import { createLogger } from "@devlaunchkit/logger";
 import { sendEmail } from "@devlaunchkit/communication";
+import { RateLimiter } from "@devlaunchkit/rate-limit";
 
 const router = Router();
 const logger = createLogger({ service: "webhooks" });
-const payments = createPaymentClient({ provider: "dodo" });
+
+const payments = createDodoBillingService({
+  apiKey: process.env.DODO_API_KEY,
+  webhookSecret: process.env.DODO_WEBHOOK_SECRET,
+  isMock: !process.env.DODO_API_KEY || process.env.NODE_ENV === "development",
+});
+
+const webhookLimiter = new RateLimiter(60, 60 * 1000); // 60 requests per minute
+
+const rateLimitMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  const clientKey = req.ip || req.socket.remoteAddress || "anonymous";
+  const result = await webhookLimiter.check(`webhook_dodo:${clientKey}`);
+  if (!result.allowed) {
+    res.status(429).json({ error: "Too many requests" });
+    return;
+  }
+  next();
+};
 
 /**
  * Dodo Payments webhook handler.
  * Processes subscription lifecycle events and invoice updates.
  */
-router.post("/dodo", async (req: Request, res: Response) => {
+router.post("/dodo", rateLimitMiddleware, async (req: Request, res: Response) => {
   try {
     const signature = req.headers["x-dodo-signature"] as string;
     if (!signature) {
@@ -20,7 +38,9 @@ router.post("/dodo", async (req: Request, res: Response) => {
       return;
     }
 
-    const event = payments.webhooks.verify(req.body, signature);
+    const secret = process.env.DODO_WEBHOOK_SECRET ?? "";
+    const rawBody = req.body instanceof Buffer ? req.body.toString("utf8") : JSON.stringify(req.body);
+    const event = await payments.validateWebhook(rawBody, signature, secret);
     logger.info("Webhook received", { type: event.type, id: event.id });
 
     switch (event.type) {

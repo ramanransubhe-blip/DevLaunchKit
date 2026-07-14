@@ -1,11 +1,14 @@
 import { Router, type Request, type Response } from "express";
-import { createPaymentClient } from "@devlaunchkit/payments";
+import { createDodoBillingService } from "@devlaunchkit/payments";
 import { db } from "@devlaunchkit/database";
 import { createLogger } from "@devlaunchkit/logger";
 
 const router = Router();
 const logger = createLogger({ service: "billing" });
-const payments = createPaymentClient({ provider: "dodo" });
+const payments = createDodoBillingService({
+  apiKey: process.env.DODO_API_KEY,
+  isMock: !process.env.DODO_API_KEY || process.env.NODE_ENV === "development",
+});
 
 /** List all invoices for the authenticated user */
 router.get("/invoices", async (req: Request, res: Response) => {
@@ -74,9 +77,8 @@ router.post("/payment-method", async (req: Request, res: Response) => {
       return;
     }
 
-    await payments.customers.updatePaymentMethod(userId, {
-      paymentMethodId,
-      setAsDefault: true,
+    await payments.updateCustomer(userId, {
+      metadata: { paymentMethodId },
     });
 
     await db("users")

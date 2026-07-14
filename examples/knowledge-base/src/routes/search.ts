@@ -99,7 +99,8 @@ router.post("/", async (req: Request, res: Response) => {
 /** Autocomplete suggestions based on document titles */
 router.get("/suggest", async (req: Request, res: Response) => {
   try {
-    const query = (req.query.q as string) ?? "";
+    const queryParam = req.query.q;
+    const query = typeof queryParam === "string" ? queryParam : "";
     if (query.length < 2) {
       res.json({ suggestions: [] });
       return;

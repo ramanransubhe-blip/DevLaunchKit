@@ -185,7 +185,10 @@ export function serializeAuthError(error: unknown): {
     return error.serialize();
   }
 
-  const message = error instanceof Error ? error.message : String(error);
+  const isDev = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
+  const message = error instanceof Error && isDev
+    ? error.message
+    : "An unexpected error occurred. Please try again later.";
   return {
     success: false,
     error: {

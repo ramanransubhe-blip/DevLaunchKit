@@ -296,10 +296,11 @@ export class StripeBillingService implements BillingService {
       if (signature === "invalid") {
         throw new BillingWebhookError("Invalid mock signature");
       }
+      const parsed = JSON.parse(rawBody);
       return {
-        type: "customer.subscription.created",
-        id: "evt_stripe_mock",
-        data: JSON.parse(rawBody),
+        type: parsed.type || "customer.subscription.created",
+        id: parsed.id || "evt_stripe_mock",
+        data: parsed.data || parsed,
         createdAt: new Date(),
       };
     }

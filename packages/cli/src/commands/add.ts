@@ -57,15 +57,23 @@ export function handleAddCommand(provider: string, shouldExit: boolean = true): 
 
   // Read .env if it exists, or create it from .env.example
   let content = "";
-  if (fs.existsSync(envPath)) {
+  try {
     content = fs.readFileSync(envPath, "utf8");
-  } else {
-    const envExamplePath = path.join(rootDir, ".env.example");
-    if (fs.existsSync(envExamplePath)) {
-      console.log("📝 .env file not found. Copying from .env.example...");
-      content = fs.readFileSync(envExamplePath, "utf8");
+  } catch (err: any) {
+    if (err.code === "ENOENT") {
+      const envExamplePath = path.join(rootDir, ".env.example");
+      try {
+        console.log("📝 .env file not found. Copying from .env.example...");
+        content = fs.readFileSync(envExamplePath, "utf8");
+      } catch (exampleErr: any) {
+        if (exampleErr.code === "ENOENT") {
+          console.log("📝 .env file not found. Creating new .env file...");
+        } else {
+          throw exampleErr;
+        }
+      }
     } else {
-      console.log("📝 .env file not found. Creating new .env file...");
+      throw err;
     }
   }
 

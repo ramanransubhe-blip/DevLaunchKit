@@ -10,6 +10,7 @@
 
 import { createStripeBillingService, type StripeConfig } from "@devlaunchkit/payments";
 import { logger } from "@devlaunchkit/logger";
+import { randomBytes } from "crypto";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -129,7 +130,7 @@ export function createPaymentService(): MarketplacePaymentService {
       const { amount, currency, transfers, metadata } = params;
 
       if (IS_MOCK) {
-        const id = `pi_mock_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+        const id = `pi_mock_${Date.now().toString(36)}_${randomBytes(3).toString("hex")}`;
 
         logger.info("Mock split payment created", {
           paymentIntentId: id,
@@ -198,7 +199,7 @@ export function createPaymentService(): MarketplacePaymentService {
       const { email, businessType, country, businessName } = params;
 
       if (IS_MOCK) {
-        const id = `acct_mock_${Math.random().toString(36).slice(2, 10)}`;
+        const id = `acct_mock_${randomBytes(5).toString("hex")}`;
 
         logger.info("Mock Connect account created", { accountId: id, email, businessName });
 
@@ -301,7 +302,7 @@ export function createPaymentService(): MarketplacePaymentService {
      */
     async processRefund(paymentIntentId: string, amount: number): Promise<RefundResult> {
       if (IS_MOCK) {
-        const id = `re_mock_${Math.random().toString(36).slice(2, 8)}`;
+        const id = `re_mock_${randomBytes(4).toString("hex")}`;
 
         logger.info("Mock refund processed", { refundId: id, paymentIntentId, amount });
 
