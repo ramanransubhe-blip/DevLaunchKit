@@ -78,8 +78,8 @@ export async function handleDoctorCommand(): Promise<void> {
   const envPath = path.join(rootDir, ".env");
   const envLocalPath = path.join(rootDir, ".env.local");
 
-  let envExists = fs.existsSync(envPath);
-  let envLocalExists = fs.existsSync(envLocalPath);
+  const envExists = fs.existsSync(envPath);
+  const envLocalExists = fs.existsSync(envLocalPath);
 
   if (envExists || envLocalExists) {
     logSuccess(`Environment files detected (${envExists ? ".env " : ""}${envLocalExists ? ".env.local" : ""})`);

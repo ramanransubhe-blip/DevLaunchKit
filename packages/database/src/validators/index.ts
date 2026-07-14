@@ -4,12 +4,12 @@ import { z } from "zod";
 
 // Core Validators
 export const insertProfileSchema = createInsertSchema(schema.profiles, {
-  email: z.string().email(),
+  email: (schema) => schema.email(),
 });
 export const selectProfileSchema = createSelectSchema(schema.profiles);
 
 export const insertOrganizationSchema = createInsertSchema(schema.organizations, {
-  slug: z.string().min(2).max(50),
+  slug: (schema) => schema.min(2).max(50),
 });
 export const selectOrganizationSchema = createSelectSchema(schema.organizations);
 
