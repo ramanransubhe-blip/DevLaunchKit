@@ -5,7 +5,11 @@
     "rootDir": "./src",
     "jsx": "react-jsx",
     "module": "ESNext",
-    "moduleResolution": "Bundler"
+    "moduleResolution": "Bundler",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "emitDeclarationOnly": false
   },
   "include": [
     "src/**/*"
