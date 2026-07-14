@@ -1,4 +1,4 @@
 // @devlaunchkit/ui icons exports
-// Add icon imports and exports here
+// Lucide React Icons
 
-export {};
+export { Layers, Trash } from "lucide-react";
