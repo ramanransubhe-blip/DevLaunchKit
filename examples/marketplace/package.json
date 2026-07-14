@@ -25,7 +25,7 @@
     "@devlaunchkit/storage": "workspace:*",
     "@clerk/backend": "^1.21.0",
     "algoliasearch": "^5.20.0",
-    "drizzle-orm": "^0.44.0",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.7.0",
     "postgres": "^3.4.5",
     "stripe": "^17.7.0",
